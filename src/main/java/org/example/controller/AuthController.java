@@ -1,7 +1,9 @@
 package org.example.controller;
 
 
-import org.example.entity.User;
+import org.example.dto.request.LoginRequest;
+import org.example.dto.request.RegisterRequest;
+import org.example.dto.response.AuthResponse;
 import org.example.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,34 +26,27 @@ public class AuthController {
 
 
 
-    // Register API
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
+    public ResponseEntity<AuthResponse> register(
+            @RequestBody RegisterRequest request
+    ){
 
-
-        User savedUser = authService.register(user);
-
-
-        return ResponseEntity.ok(savedUser);
+        return ResponseEntity.ok(
+                authService.register(request)
+        );
 
     }
 
 
 
-    // Login API
     @PostMapping("/login")
-    public ResponseEntity<User> login(
-            @RequestBody User user
-    ) {
+    public ResponseEntity<AuthResponse> login(
+            @RequestBody LoginRequest request
+    ){
 
-
-        User loggedUser = authService.login(
-                user.getEmail(),
-                user.getPassword()
+        return ResponseEntity.ok(
+                authService.login(request)
         );
-
-
-        return ResponseEntity.ok(loggedUser);
 
     }
 

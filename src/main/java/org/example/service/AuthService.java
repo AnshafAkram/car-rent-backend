@@ -1,5 +1,9 @@
 package org.example.service;
 
+
+import org.example.dto.request.LoginRequest;
+import org.example.dto.request.RegisterRequest;
+import org.example.dto.response.AuthResponse;
 import org.example.entity.User;
 import org.example.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -19,35 +23,50 @@ public class AuthService {
     }
 
 
-    // Register User
-    public User register(User user) {
+
+    // Register
+
+    public AuthResponse register(RegisterRequest request) {
 
 
-        if(userRepository.existsByEmail(user.getEmail())) {
+        if(userRepository.existsByEmail(request.getEmail())) {
 
             throw new RuntimeException("Email already exists");
 
         }
 
 
-        if(user.getRole() == null || user.getRole().isEmpty()) {
+        User user = new User();
 
-            user.setRole("CUSTOMER");
+        user.setName(request.getName());
 
-        }
+        user.setEmail(request.getEmail());
+
+        user.setPassword(request.getPassword());
+
+        user.setRole("CUSTOMER");
 
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+
+        return new AuthResponse(
+                savedUser.getId(),
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getRole()
+        );
 
     }
 
 
 
-    // Login User
-    public User login(String email, String password) {
+    // Login
+
+    public AuthResponse login(LoginRequest request) {
 
 
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(request.getEmail());
 
 
         if(user == null) {
@@ -57,14 +76,19 @@ public class AuthService {
         }
 
 
-        if(!user.getPassword().equals(password)) {
+        if(!user.getPassword().equals(request.getPassword())) {
 
             throw new RuntimeException("Invalid password");
 
         }
 
 
-        return user;
+        return new AuthResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
+        );
 
     }
 
