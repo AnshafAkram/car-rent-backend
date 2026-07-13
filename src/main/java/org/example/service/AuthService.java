@@ -6,6 +6,8 @@ import org.example.dto.request.RegisterRequest;
 import org.example.dto.response.AuthResponse;
 import org.example.entity.User;
 import org.example.repository.UserRepository;
+import org.example.security.JwtUtil;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -15,19 +17,36 @@ public class AuthService {
 
     private final UserRepository userRepository;
 
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository) {
+    private final JwtUtil jwtUtil;
+
+
+
+    public AuthService(
+            UserRepository userRepository,
+            BCryptPasswordEncoder passwordEncoder,
+            JwtUtil jwtUtil
+    ) {
 
         this.userRepository = userRepository;
+
+        this.passwordEncoder = passwordEncoder;
+
+        this.jwtUtil = jwtUtil;
 
     }
 
 
 
-    // Register
+    // ==========================
+    // REGISTER USER
+    // ==========================
 
     public AuthResponse register(RegisterRequest request) {
 
+
+        // Check email already exists
 
         if(userRepository.existsByEmail(request.getEmail())) {
 
@@ -36,58 +55,116 @@ public class AuthService {
         }
 
 
+
         User user = new User();
+
 
         user.setName(request.getName());
 
         user.setEmail(request.getEmail());
 
-        user.setPassword(request.getPassword());
+
+        // Encrypt password
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getPassword()
+                )
+        );
+
+
+        // Default role
 
         user.setRole("CUSTOMER");
+
 
 
         User savedUser = userRepository.save(user);
 
 
+
         return new AuthResponse(
+
                 savedUser.getId(),
+
                 savedUser.getName(),
+
                 savedUser.getEmail(),
-                savedUser.getRole()
+
+                savedUser.getRole(),
+
+                null
+
         );
 
     }
 
 
 
-    // Login
+
+    // ==========================
+    // LOGIN USER
+    // ==========================
 
     public AuthResponse login(LoginRequest request) {
 
 
-        User user = userRepository.findByEmail(request.getEmail());
+
+        User user = userRepository.findByEmail(
+                request.getEmail()
+        );
+
 
 
         if(user == null) {
 
-            throw new RuntimeException("User not found");
+            throw new RuntimeException("Invalid email");
 
         }
 
 
-        if(!user.getPassword().equals(request.getPassword())) {
+
+
+        // Compare BCrypt password
+
+        if(!passwordEncoder.matches(
+
+                request.getPassword(),
+
+                user.getPassword()
+
+        )) {
+
 
             throw new RuntimeException("Invalid password");
 
         }
 
 
+
+
+        // Generate JWT Token
+
+        String token = jwtUtil.generateToken(
+                user.getEmail()
+        );
+
+
+
+
+
         return new AuthResponse(
+
                 user.getId(),
+
                 user.getName(),
+
                 user.getEmail(),
-                user.getRole()
+
+                user.getRole(),
+
+                token
+
         );
 
     }
