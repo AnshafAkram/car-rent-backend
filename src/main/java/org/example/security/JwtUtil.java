@@ -3,6 +3,7 @@ package org.example.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -95,6 +96,14 @@ public class JwtUtil {
 
         }
 
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+
+        String email = extractEmail(token);
+
+        return email.equals(userDetails.getUsername()) &&
+                validateToken(token);
     }
 
 }

@@ -2,6 +2,7 @@ package org.example.service;
 
 
 import org.example.entity.Booking;
+import org.example.entity.User;
 import org.example.entity.Vehicle;
 import org.example.repository.BookingRepository;
 import org.example.repository.VehicleRepository;
@@ -122,4 +123,19 @@ public class BookingService {
 
     }
 
+    public List<Booking> getBookingsByUser(Long userId){
+
+        return bookingRepository.findByUserId(userId);
+
+    }
+
+    public List<Booking> getBookingsOfUser(String email){
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow();
+
+        return bookingRepository.findByUser(user);
+
+    }
 }
